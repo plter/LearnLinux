@@ -1,0 +1,122 @@
+1、Linux中的IO分类
+
+
+	标准IO：直接调用系统内核进行IO操作
+
+	高级IO：在标准IO的基础上增加缓冲机制（用户空间）一般为f开头的函数
+
+	系统的缓冲机制：
+		用户空间缓冲（IO中的高级IO）
+		内核中缓存区，依赖于内核的参数设置，一般不会超出一页的大小
+		硬件缓存区（硬盘的缓存大小）
+
+2、标准IO
+
+	文件描述符：从0开始的int数据
+	对于内核而言，所有打开的文件都通过文件描述符进行引用。文件描述符是
+	一个非负整数。当打开一个现有文件或创建文件的时候，内核向当前进程返回
+	一个文件描述符。当使用open、creat打开或者创建一个文件的时候返回描述符
+	来标识这个文件，并将其作为参数提供给read、write、close使用！
+
+
+	注意事项：
+
+	A===
+	获取的当前文件的描述符最小为3 ； 0 、 1 、 2已经被系统占用
+
+	#include <unistd.h>
+
+	STDIN_FILENO    0    标准输入
+	STDOUT_FILENO   1    标准输出
+	STDERR_FILENO   2    标准错误输出
+
+	B===
+	文件描述符存在范围
+
+	0~~~OPEN_MAX-1
+	但是这个范围是系统编译之前设置的数据，在经过系统编译之后会发生变化，
+	查看真实有效的文件描述符范围：file-max
+
+
+
+
+
+3、open函数
+
+	#include <fcntl.h>
+
+	int open(const char *filename,int oflag, ....);
+
+	成功：返回文件描述符   失败：返回-1
+
+
+	oflag参数：
+
+
+	以下这五个必须指定且只能指定一个
+
+	O_RDONLY    只读打开
+	O_WRONLY    只写打开
+	O_RDWR      读写打开
+	O_EXEC      只执行打开
+	O_SEARCH    只搜索打开（应用与目录）
+
+	====
+
+	O_CREAT     当文件不存在是创建它
+
+	oflag参数有多个时候之前使用 | 运算符链接
+
+	文件所有者权限
+
+	S_IRWXU   表示该文件所有者具有可读、可写、可执行权限
+	
+
+	#include <fcntl.h>
+
+	creat(const char *path, mode_t mode);
+
+	在没有open新版本之前，创建一个文件需要使用creat，但是存在局限，creat只能
+	创建只读文件，会造成我想创建一个文件并在文件中写内容是需要先creat、close
+	再执行open
+
+4、read函数
+
+	#include <unistd.h>
+
+	ssize_t read(int fd, void *buf, size_t buf_size)
+
+	成功：读到的字节数，如果到末尾返回 0
+	失败：返回 -1
+
+5、write函数
+
+	#include <unistd.h>
+
+	ssize_t write(int fd, const void *buf, ssize_t buf_size)
+
+	成功：返回已经写入的字节数
+	失败：返回-1
+
+6、lseek函数
+
+	#include <unistd.h>
+
+	off_t lseek(int fd, off_t offset, int whence)
+
+	offset为偏移量，是一个差值
+	whence取值有三种：
+
+	#include <unistd.h>
+	SEEK_SET  文件开始处
+	SEEK_CUR  文件的当前位置
+	SEEK_END  文件末尾
+
+	lseek应用：
+	空洞文件的制作
+	查看当前文件的大小，以及检查当前文件是否为设备文件
+
+
+
+
+

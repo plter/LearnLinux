@@ -1,0 +1,742 @@
+关于Linux的命令
+
+1、文件拷贝命令
+
+	========
+	cp  源文件目录  将要保存的目录
+	cp  /etc/passwd  .   将etc下的passwd文件拷贝到当前目录
+
+	========
+	一次拷贝多个文件
+	cp  源文件一  源文件二  将要保存的目录
+	cp  /bin/ls  /bin/ps  .   将/bin/ls和/bin/ps同时拷贝到当前目录
+
+	========
+	拷贝目录下的全部内容
+	cp  -a  /bin  .           将/bin目录下的所有内容（文件、目录）
+					全部拷贝到当前目录下
+
+	========
+	复制目录下全部文件及子目录
+	cp  -rf  /bin  /home/haoming/文档/12.01
+
+	========
+	注意：cp命令不会导致权限问题
+
+2、文件删除命令
+
+	========
+	rm  要删除的文件名
+	rm  passwd               将文件passwd删除，不进行再次确认
+
+	========
+	rm  -rf  要删除的目录、文件
+	rm  -rf  /bin            删除/bin目录下的所有文件、目录不进行确认
+
+	========
+	rm  -i  要删除的文件只能是是文件      提示是否进行删除的确认操作
+	rm  -f  要删除的文件名称              不进行提示直接删除没有确认操作
+
+
+3、关于i节点
+
+	i节点是什么？
+
+	对于正在运行中的系统，假如其中某个.so文件需要更新，但是此文件又被引用，
+	怎么能保证更新的同时系统正常不出错？
+	第一步：
+		rm   要更新的so文件的名字
+	第二部：
+		cp   要更新的so文件名字  需要复制到的目录
+
+	解释：第一步仅仅是做了删除操作，在i节点技术中只有在“文件删除”，“文件无引用”
+		这两个条件同时满足，文件才会被彻底删除，第一步操作仅仅做了“文件删除”
+		这一个条件，假如此时仍然有对应这个文件的引用，那么仍然可以继续使用，
+		直到对应的引用全部释放后，文件才会被彻底删除。
+
+		在文件系统管理中存在一个文件编号，一个新的so文件拷贝进来后，其编号
+		与之前的是不同的，这样就可以在第一步文件被删除后，其他引用位置仍然
+		使用老的文件编号，再到下次引用相关功能的文件时，此文件编号已经更新
+		了，老的编号在所有引用都释放之后，原来的文件自然就删除了！
+
+3、文件查看命令
+
+	========
+	cat  要查看的文件名
+	cat  passwd          查看passwd文件   
+	---  翻页操作：使用shift + PAGE UP / PAGE DN实现翻页操作
+	
+	========
+	head  要查看的文件名
+	head passwd          查看passwd文件的前十行
+	head -n 3 passwd     查看passwd文件的前三行
+
+	========
+	tail  要查看的文件名
+	tail  passwd         查看passwd文件的尾部十行
+	tail -n 3 passwd     查看passwd文件的尾部三行
+
+	========
+	more  要查看的文件名
+	more passwd          
+	----  显示的内容按照显示器的屏幕进行一屏屏展示，空格操作
+	       q直接退出，或者查看完后自动退出
+	       此命令只能向下翻屏
+
+	========
+	less  要查看的文件名
+	less passwd
+	----  显示内容可以自由上下翻动，直接使用PAGE UP / PAGE DN即可
+	       q直接退出
+
+
+
+4、更名与移动文件
+
+	========
+	mv  文件老名称   新名称
+	mv  ls  aaa            将ls更名为aaa
+	
+	========
+	mv  要移动的文件  移动到的目录位置
+	mv  aaa  /temp         将aaa文件移动到temp下
+
+5、查看目录
+
+	========
+	ls  想要查看的目录名
+	ls /tmp                查看temp下的非隐藏文件
+	ls                     查看当前目录下的非隐藏文件
+
+	========
+	ls  -a  想要查看的目录名
+	ls  -a  /bin           查看bin目录下的所有文件
+	ls  -a                 查看当前目录下的所有文件
+
+	========
+	ls  -l  想要查看的目录的地址
+	ls  -l  /bin           查看/bin目录下所有文件的具体信息
+	ls  -l  可以简写为ll    查看当前目录下的所有文件的具体信息
+
+
+6、目录的创建、删除
+
+	========
+	mkdir   要创建的目录名称
+	mkdir  temp            在当前目录下创建一个temp目录
+
+	========
+	rmdir   要删除的目录名称
+	rmdir  temp            删除当前目录下的temp子目录（此时要求temp必须为空）
+
+
+
+7、更改用户密码
+
+	========
+	passwd  要更改密码的用户名     更改对应用户名的密码
+	passwd  haoming
+	passwd                        更改当前用户的密码
+
+
+8、Linux中的文件权限操作
+
+	========
+	不同用户对同一文件的操作权限是不同的，进行分类：三种
+	文件的归属分类，三个权限概念，针对一个文件对其可以操作的用户的身份可以分为三种：
+	a、所有者（普通文件、设备文件、目录文件）文件的创建者
+	b、隶属组，文件所有者所在的用户组
+	c、其他人
+
+	========
+	ls -l  命令展示出来的文件的详细信息：
+	-rwxrwxr-x  1 haoming haoming 8656 12月  2 10:00 a.out*
+	各部分含义：
+	     -                       rwx            rwx          r-x       1        haoming    haoming   8656   12月  2 10:00     a.out*
+
+	“-”：表示普通文件           所有者权限   同组用户权限    其他人权限  i节点号    所有者      用户组  文件大小    文件创建或    文件名
+	“l”：表示符号链接                                                                                           最后修改时间  文件名称后
+	     最后对应实际位置                                                                                                    可能有特殊字符
+	“d”：表示目录                                                                                                           该字符由系统生成
+	“c”：表示字符型设备文件
+	“b”：表示块设备文件（硬盘）
+	“p”：表示管道设备文件
+
+	=========
+	proc、sys这两个文件的文件大小为0，说明这两个文件不是实际存在的，是内核虚拟出来的 ！
+
+	=========
+	针对rwx的解释
+	读（r），写（w），执行（x），没有 ，这四种针对文件的操作对应数字： 4 2 1 0
+	在进行文件权限的更改中使用chmod命令是经常使用：777 775 ... 等这些数字，这些数字就是
+	上面的4,2,1,0进行数学运算得出的结果！
+	文件的四种操作形式（读 r、写 w、执行 x、没有）
+	针对x的解释：当前为目录时，x表示当前目录可以被列表，可以被搜索 ！
+
+	=========
+	针对rwx中的x位置还可以是另外两种权限情况：
+	t（当前目录、文件仅所有者可以删除）
+	s（设置“粘着位”，表示无论哪个用户执行该文件时，都具有该文件所有者相同的权限，
+	   用户对这个文件的权限仅在执行时具有，执行后权限消失）
+	
+
+9、更改文件的详细信息
+
+	=========
+	更改文件的所有者
+	chown   新所有者   文件名
+	chown  hm  a.out                    将a.out的所有者更改为用户hm
+
+	=========
+	更改文件所属的用户组
+	chgrp   新用户组    文件名
+	chgrp   root   a.out                将a.out文件的用户组更改为root组
+
+	=========
+	更改文件的开放权限
+	chmod  权限数字    文件名
+	chmod  777  a.out                   将a.out文件的开放权限开到最高rwx（可读、可写、可执行）
+	
+	=========
+	针对权限数字的解释：
+	        7                   7                     7
+	所有者具有的文件权限   用户组具有的文件权限   其他人具有的文件权限
+	每个数字都是经过，读（r），写（w），执行（x），没有 ，这四种针对文件的操作对应数字： 4 2 1 0
+	对应不同数字进行算术运算得到的结果
+
+	=========
+	特殊操作
+	----
+	设置粘着位：
+	chmod  4xxx  a.out    为当前a.out文件设置粘着位  粘着位设置在所有者位置？？？第一个rwx处？？
+
+	----
+	设置仅所有者可删除
+	chmod  1xxx  a.out    为当前a.out文件设置仅所有者可以删除，这个设置体现在第三个rwx上！
+	                      这表示仅仅对其他人有限制吗？还是同组人也有限制？？
+
+	=========
+	仅仅设置所有者的权限或者同组的权限
+	umask  权限数字
+	umask  077  a.out    表示含义：077设置在这里表示要使用777-077=700
+	此操作相当于chmod  700  a.out
+	
+
+10、进程状态信息的查看
+
+
+	=========
+	查看当前终端的所有进程信息
+	ps                             将当前终端中的进程信息展示出来
+	ps  -fe                        将当前PC上的所有中段的进程信息展示出来
+	                               shift + PAGE UP / PAGE DN 可以翻动进程信息列表
+
+	=========
+	进程信息查看
+	
+	UID           PID      PPID     C      STIME      TTY            TIME          CMD
+	root           1        0       0      16:16       ?           00:00:01     /sbin/init splash
+	root           2        0       0      09:57       ?           00:00:00       [kthreadd]
+	用户id      进程id    父进程号                 隶属于哪个终端                 该终端执行的命令
+	            进程号                            “?”：不属于任何终端
+	                                              “pts”：远程终端
+	
+
+	进程号：  0：表示内核进程    1：表示/sbin/init进程
+
+	==========
+	安全考虑
+	对于一些安全要求高的系统，如：数据库系统，使用ps -fe 在CMD的位置能够查看到完整的用户名密码
+	不够安全，这些系统在使用用户名密码的时候采用其他方式完成！
+
+	==========
+	关于线程
+	在上面的内容中CMD的位置第二行有[kthreadd]，在CMD位置带有[]的内容表示在内核空间运行的线程
+	内核中的线程与用户空间的线程不同，用户空间的线程使用ps -fe 命令不能查看！
+
+
+
+11、进程关闭
+
+	=========
+	kill  想要关闭的进程号
+	kill  -9  想要关闭的进程号
+
+	9) SIGKILL     15) SIGTERM
+	kill默认发送的15标识的信号，该信号在特殊情况下杀不死对应的进程
+	使用9标识的信号可以强制关闭某个进程
+	管理员可以杀死所有的进程，普通用户只能杀死属于自己的进程
+
+	=========
+	查看信号标识
+	kill -l
+
+	1) SIGHUP	 2) SIGINT	 3) SIGQUIT	 4) SIGILL	 5) SIGTRAP
+	 6) SIGABRT	 7) SIGBUS	 8) SIGFPE	 9) SIGKILL	10) SIGUSR1
+	11) SIGSEGV	12) SIGUSR2	13) SIGPIPE	14) SIGALRM	15) SIGTERM
+	16) SIGSTKFLT	17) SIGCHLD	18) SIGCONT	19) SIGSTOP	20) SIGTSTP
+	21) SIGTTIN	22) SIGTTOU	23) SIGURG	24) SIGXCPU	25) SIGXFSZ
+	26) SIGVTALRM	27) SIGPROF	28) SIGWINCH	29) SIGIO	30) SIGPWR
+	31) SIGSYS	34) SIGRTMIN	35) SIGRTMIN+1	36) SIGRTMIN+2	37) SIGRTMIN+3
+	38) SIGRTMIN+4	39) SIGRTMIN+5	40) SIGRTMIN+6	41) SIGRTMIN+7	42) SIGRTMIN+8
+	43) SIGRTMIN+9	44) SIGRTMIN+10	45) SIGRTMIN+11	46) SIGRTMIN+12	47) SIGRTMIN+13
+	48) SIGRTMIN+14	49) SIGRTMIN+15	50) SIGRTMAX-14	51) SIGRTMAX-13	52) SIGRTMAX-12
+	53) SIGRTMAX-11	54) SIGRTMAX-10	55) SIGRTMAX-9	56) SIGRTMAX-8	57) SIGRTMAX-7
+	58) SIGRTMAX-6	59) SIGRTMAX-5	60) SIGRTMAX-4	61) SIGRTMAX-3	62) SIGRTMAX-2
+	63) SIGRTMAX-1	64) SIGRTMAX	
+
+	=========
+	杀进程技巧
+
+	杀一个进程
+	杀无关联进程
+	杀有关联进程，父子进程，先写大进程号，再写小进程号
+	kill -9 4588 4550 3210
+
+	子进程由父进程fork出来，进程号是从小到大一直递增的！
+
+12、进程关系列表
+
+	=========
+	查看父子进程树
+	pstree        查看父子进程的关系，进程树
+
+
+13、查看系统基本信息
+
+	top（Linux系统中一般可以通用！）监测当前PC上的设备使用
+	top指令与ps -fe指令得到的内容很相近！
+	q退出查看内容！
+
+	top - 10:37:23 up 40 min,  1 user,  load average: 0.17, 0.27, 0.26
+	Tasks: 180 total,   1 running, 179 sleeping,   0 stopped,   0 zombie
+	%Cpu(s):  2.7 us,  0.7 sy,  0.0 ni, 96.6 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+	KiB Mem :  8175488 total,  6029908 free,  1112396 used,  1033184 buff/cache
+	KiB Swap:  8386556 total,  8386556 free,        0 used.  6755168 avail Mem 
+
+	  PID USER      PR  NI    VIRT    RES    SHR S %CPU %MEM     TIME+ COMMAND      
+	  775 root      20   0  395536 178480  41412 S  2.3  2.2   1:31.83 Xorg         
+	 3324 haoming   20   0  630192  49040  39040 S  1.7  0.6   0:00.74 gnome-termi+
+
+
+	===================================================================================
+	top - 10:37:23     up 40 min,     1 user,      load average: 0.17, 0.27, 0.26
+	                   启动时间       正在使用的         当前负载
+	                                  用户数量      数字小表示CPU等处于闲置状态，假如出现
+	                                               某个时刻数字特别大，表示此时可能出现了
+	                                               大并发访问，或者系统繁忙！
+	Tasks: 180 total,   1 running,    179 sleeping,     0 stopped,      0 zombie
+	 总共运行的进程      正在运行      睡眠或者阻塞       已经执行完       僵死进程
+	   数量               数量        的进程数量         进程数量        进程基本资源
+	                                  不消耗CPU         进程执行完了     还在，但是已
+	                                                   并不一定没了     不能运行
+	                                                   孤儿进程
+
+	%Cpu(s):       2.7 us,        0.7 sy,       0.0 ni,     96.6 id,    0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+	          当前CPU用来执行  执行系统代码的  改变了优先级   CPU剩余
+	          用户空间代码的   CPU占用率       的进程执行占
+	          CPU占用率                       用CPU的百分率
+	进程的优先级是可以更改的，但是系统内核有一套完整的优先级管理方案，一般不要去更改进程优先级！
+
+	KiB Mem :  8175488 total,  6029908 free,  1112396 used,  1033184 buff/cache
+	
+	KiB Swap:  8386556 total,  8386556 free,        0 used.  6755168 avail Mem 
+	交换区
+	交换文件
+	  PID USER      PR  NI    VIRT    RES    SHR S %CPU %MEM     TIME+ COMMAND      
+	  775 root      20   0  395536 178480  41412 S  2.3  2.2   1:31.83 Xorg         
+	 3324 haoming   20   0  630192  49040  39040 S  1.7  0.6   0:00.74 gnome-termi+
+
+	=========
+	查看部分top中的部分信息
+	------
+	uptime
+	10:52:20 up 54 min,  1 user,  load average: 0.37, 0.38, 0.36
+	------
+	free
+	             total        used        free      shared  buff/cache   available
+	Mem:        8175488     1146140     5989924       24492     1039424     6721096
+	Swap:       8386556           0     8386556
+
+	
+14、关于系统分区的几种查看方式
+
+	=========
+	df
+	查看当前PC上的所有分区包括“虚拟分区”“逻辑分区”
+	
+	=========
+	cat  /etc/fstab    ？？
+	查看当前的物理分区
+	
+
+	=========
+	fdisk  -l  /dev/sda
+	查看当前磁盘的实际分区，列出磁盘分区结构
+	启动：这一项中的“*”表示这个分区是系统启动是的引导分区,希望的文件系统，
+	      启动时全检索这个文件进行查找
+
+	Disk /dev/sda: 35 GiB, 37580963840 bytes, 73400320 sectors
+	Units: sectors of 1 * 512 = 512 bytes
+	Sector size (logical/physical): 512 bytes / 512 bytes
+	I/O size (minimum/optimal): 512 bytes / 512 bytes
+	Disklabel type: dos
+	Disk identifier: 0xac34d9f7
+
+	设备       启动    Start   末尾   扇区 Size Id 类型
+	/dev/sda1  *        2048 56623103 56621056  27G 83 Linux
+	/dev/sda2       56625150 73398271 16773122   8G  5 扩展
+	/dev/sda5       56625152 73398271 16773120   8G 82 Linux 交换 / Solaris
+
+	
+15、操作别名
+
+	======== 
+	设置别名
+	alias  别名   '将要设置别名的指令'
+	alias  aaa   'df'                 将df的别名设置为aaa，注意指令要是使用单引号括起来
+	alias  bbb   'df -v'              别名也可以标识具有参数的指令，此时单引号将指令整体括起来
+
+	========
+	解除别名
+	unalias  已经设置的别名
+	unalias  aaa                        解除aaa别名
+	unalias  bbb                        解除bbb别名
+
+
+16、vi编辑器
+
+	========
+	vi编辑文件     一些操作与日常习惯有很大不同，存在一些特殊指令
+	vi  要编辑的文件名
+	wq 退出正在进行vi编制的文件
+
+
+17、文件打包压缩解压缩操作
+
+	=========
+	文件的打包操作
+	tar
+	原始操作是向磁带机中存取内容，文件目录的打包压缩
+	语法格式要求严格
+	tar  cvf  打包后的文件名   想要压缩的文件目录
+	tar  cvf  aaa.tar   bin        将bin目录打包成aaa.tar
+
+	haoming@haoming:~/文档/12.01$ sudo tar cvf ccc.tar aaa bbb   
+	将当前目录下的aaa与bbb目录打包成ccc.tar
+	aaa/
+	aaa/aa_aa/
+	aaa/haha.txt
+	bbb/
+	bbb/enenen.txt
+	bbb/bb_bb/
+
+	--------
+	cvf解释
+	c：创建一个包
+	v：将操作的目录及文件提取出来并展示
+	   即：
+	      aaa/
+	      aaa/aa_aa/
+	      aaa/haha.txt
+	      bbb/
+	      bbb/enenen.txt
+	      bbb/bb_bb/
+	f：表示后面将对文件进行操作
+
+	========
+	解压已经打包的文件
+	tar  xvf  aaa.tar          将aaa.tar解压出来
+
+	haoming@haoming:~/文档/12.01$ tar xvf ccc.tar
+	aaa/
+	aaa/aa_aa/
+	aaa/haha.txt
+	bbb/
+	bbb/enenen.txt
+	bbb/bb_bb/
+
+	--------
+	xvf解释
+	x：表示解压操作
+
+	========
+	查看压缩包中内容
+	tar tvf ccc.tar             查看ccc.tar压缩包中内容
+	haoming@haoming:~/文档/12.01$ tar tvf ccc.tar
+	drwxrwxr-x haoming/haoming   0 2016-12-04 11:28 aaa/
+	drwxrwxr-x haoming/haoming   0 2016-12-04 11:27 aaa/aa_aa/
+	-rw-rw-r-- haoming/haoming   0 2016-12-04 11:27 aaa/haha.txt
+	drwxrwxr-x haoming/haoming   0 2016-12-04 11:28 bbb/
+	-rw-rw-r-- haoming/haoming   0 2016-12-04 11:28 bbb/enenen.txt
+	drwxrwxr-x haoming/haoming   0 2016-12-04 11:28 bbb/bb_bb/
+
+	--------
+	tvf解释
+	t：查看压缩包中内容
+
+	=========
+	指定压缩格式
+	tar  czvf   ddd.tgz   aaa  bbb     将aaa与bbb打包成ddd.tgz
+
+	haoming@haoming:~/文档/12.01$ tar czvf ddd.tgz  aaa  bbb
+	aaa/
+	aaa/aa_aa/
+	aaa/haha.txt
+	bbb/
+	bbb/enenen.txt
+	bbb/bb_bb/
+
+	--------
+	czvf解释
+	z：表示压缩格式zip
+	ddd.tgz    zip格式的压缩包携程.tgz格式后缀
+	tgz表示：tar gnu zip
+
+	=========
+	解压zip压缩吧
+	tar  xzvf  ddd.tgz        将zip格式的压缩吧ddd.tgz解压缩
+
+	haoming@haoming:~/文档/12.01$ tar xzvf ccc.tar
+
+	gzip: stdin: not in gzip format
+	tar: Child returned status 1
+	tar: Error is not recoverable: exiting now
+	haoming@haoming:~/文档/12.01$ tar xzvf ddd.tgz
+	aaa/
+	aaa/aa_aa/
+	aaa/haha.txt
+	bbb/
+	bbb/enenen.txt
+	bbb/bb_bb/
+
+	=========
+	查看zip压缩包内容
+	tar tzvf  ddd.tgz         查看ddd.tgz压缩包中文件信息
+
+	haoming@haoming:~/文档/12.01$ tar tzvf ddd.tgz
+	drwxrwxr-x haoming/haoming   0 2016-12-04 11:28 aaa/
+	drwxrwxr-x haoming/haoming   0 2016-12-04 11:27 aaa/aa_aa/
+	-rw-rw-r-- haoming/haoming   0 2016-12-04 11:27 aaa/haha.txt
+	drwxrwxr-x haoming/haoming   0 2016-12-04 11:28 bbb/
+	-rw-rw-r-- haoming/haoming   0 2016-12-04 11:28 bbb/enenen.txt
+	drwxrwxr-x haoming/haoming   0 2016-12-04 11:28 bbb/bb_bb/
+
+
+
+17、几个小命令
+
+	========
+	id命令
+	查看当前用户的真实身份，uid、gid
+
+	========
+	env查看环境变量列表
+	环境变量列表格式：环境变量名=环境变量值
+
+	========
+	who am i    ？？执行不出来
+	列出当前系统的登录的用户，网络环境下域名、IP君能看到
+
+	========
+	last
+	最近登录记录，登录时间
+
+	========
+	dmesg
+	内核与用户应用的调试输出，系统启动时的信息
+	从后往前倒着看！
+
+	========
+	pwd                            查看当前所在目录
+
+	========
+	ls  --color
+	以有颜色的形式查看当前目录下的文件，仅仅这一次操作中有效
+
+
+	=======
+	查看帮助命令
+	man  ls                        查看命令ls对应的帮助信息
+	man  strlen                    查看strlen函数的帮助信息
+	不仅仅可以查看命令，开发工具，配置文件，函数等都可以
+
+
+18、查找操作
+
+
+	=======
+	在当前目录查找
+
+	find  -name  *std*.h        按照文件名在当前目录下查找
+	find  -name  *.out          在当前目录中查找所有后缀名为.out的文件
+	                            在此“*”作为通配符的作用依然可行
+
+	========
+	制定目录查找
+
+	find  /home/haoming/文档/11.24  -name  "*.c"
+	在11.24目录下查找所有的.c文件，文件名称要使用双引号括起来
+
+	========
+	find     .     -name     *.o     -exec           rm          {}         \;
+	     当前目录                  执行一个命令   想要执行的命令 边缘替换  将查找到的内容传递给rm
+
+	边缘替换：将查找到的内容替换到此处执行对应的脚本或者命令
+
+
+19、查看命令或者执行程序的执行过程
+
+	========
+	strace   要执行的命令或者可执行文件
+	查看的执行过程包括：调用的IO函数、驱动调用、中间数据、跟踪执行历史
+	strace  ls                         查看ls命令的执行过程
+	strace  ./a.out                    查看./a.out的执行过程
+
+20、列出文件字符串
+
+	========
+	列出程序中的英文字符串
+	strings   可执行文件名
+	strings  a.out                     查看a.out中的所有英文字符
+
+	========
+	在列出的字符中查找某个字符
+	strings  a.out | grep  '\-u'       在a.out中查找‘-u’字符串
+
+	========
+	grep命令
+
+	grep  要查找的内容   在哪里查找      要查找的内容可以是英文字符、中文、符号都可以
+	grep  std  *.c                     在当前目录下的所有.c文件中查找“std”字符串
+	haoming@haoming:~/文档/12.01$ grep std *.c
+	CopyIO.c:#include <stdio.h>
+	CopyIO.c:#include <unistd.h>
+	IODemo1.c:#include <stdio.h>
+	IODemo1.c:#include <unistd.h>
+	Test1.c:#include <stdio.h>
+	Test.c:#include <stdio.h>
+
+
+21、程序节省空间编译
+
+	========
+	strip  -sx  a.out                 将a.out中不同类型的符号删除掉，节省空间
+	-sx表示删除的最干净，文件小，反编译困难
+	-sx只针对用户空间程序使用，对于内核、内核模块、内核驱动程序不可以做此操作，否则内核加载不了
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
